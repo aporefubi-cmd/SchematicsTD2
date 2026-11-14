@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recalibration Build Maker</title>
+<style>
+:root{--bg:#f3f1ee;--card:#fff;--ink:#1b1b1f;--mute:#6b6b73;--line:#dcd8d2;--acc:#e8620c;--accsoft:#fde6d6;--add:#1f9d55;--rep:#d6336c;--opt:#3b6fd4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1114;--card:#191c21;--ink:#ecebe8;--mute:#8d9099;--line:#2a2e35;--acc:#ff7a1a;--accsoft:#3a2412;--add:#43d17f;--rep:#ff6b9b;--opt:#6f9cff}}
+:root[data-theme="dark"]{--bg:#0f1114;--card:#191c21;--ink:#ecebe8;--mute:#8d9099;--line:#2a2e35;--acc:#ff7a1a;--accsoft:#3a2412;--add:#43d17f;--rep:#ff6b9b;--opt:#6f9cff}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:18px 16px 8px;max-width:1200px;margin:auto}
+h1{margin:0;font-size:22px;letter-spacing:.04em;text-transform:uppercase}h1 span{color:var(--acc)}
+.sub{color:var(--mute);font-size:13px;margin-top:2px}
+.wrap{max-width:1200px;margin:auto;padding:8px 16px 40px;display:grid;grid-template-columns:1fr 330px;gap:16px}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:13px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.grp{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.lbl{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+input[type=search]{flex:1;min-width:140px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%}
+.card:hover{border-color:var(--acc)}.card.sel{background:var(--accsoft);outline:2px solid var(--acc)}
+.sec{grid-column:1/-1;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin-top:8px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.nm{font-weight:700;letter-spacing:.03em}.xp{font-size:11px;color:var(--mute);white-space:nowrap}
+.meta{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:2px 0 6px}
+.slot{font-size:13px;padding:3px 0;border-top:1px dashed var(--line)}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;color:#fff;vertical-align:1px}
+.ADD{background:var(--add)}.REP{background:var(--rep)}.OPT{background:var(--opt)}
+aside{position:sticky;top:10px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;max-height:calc(100vh - 20px);overflow:auto}
+@media(max-width:860px){aside{position:static;max-height:none}}
+aside h2{margin:0 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:.06em}
+.item{border-top:1px solid var(--line);padding:8px 0;font-size:13px}.item b{letter-spacing:.03em}
+.item button{float:right;border:0;background:none;color:var(--mute);cursor:pointer;font-size:16px}
+.empty{color:var(--mute);font-size:13px;padding:8px 0}
+.act{display:flex;gap:8px;margin-top:10px}.act button{flex:1}
+</style>
+</head>
+<body>
+<header>
+<h1>Recalibration <span>Build Maker</span></h1>
+<div class="sub">Filter by expertise level and category, tap a card to add it to your build.</div>
+</header>
+<div class="wrap">
+<main>
+<div class="bar">
+<input id="q" type="search" placeholder="Search name or stat (e.g. CHD, HAZPRO)…">
+</div>
+<div class="bar"><span class="lbl">Expertise</span><div class="grp" id="fx"></div></div>
+<div class="bar"><span class="lbl">Category</span><div class="grp" id="fc"></div></div>
+<div class="bar" id="rowS" style="display:none"><span class="lbl">Type</span><div class="grp" id="fs"></div></div>
+<div class="grid" id="grid"></div>
+</main>
+<aside>
+<h2>My build <span id="cnt" class="xp"></span></h2>
+<div id="list"></div>
+<div class="act"><button class="chip" id="copy">Copy list</button><button class="chip" id="clr">Clear</button></div>
+</aside>
+</div>
+<script>
+const D=[
+["PATCH JOB",0,"Brand","RECAL",["REPLACE 15% SKILL REPAIR"]],
+["SHELTER",0,"Brand","RECAL",["REPLACE 7.5 HAZPRO"]],
+["PAYOUT",0,"Gear Set","RECAL",["REPLACE 9 CHD"]],
+["BOXCARS",0,"Gear Set","RECAL",["REPLACE 4.5 CHC"]],
+["VOUCHSAFE",0,"Gear Set","RECAL",["REPLACE 7.5 HAZPRO"]],
+["SPITFIRE",0,"Weapon","ADD",["ADD 2% ROF"]],
+["ROCKSTEADY",0,"Weapon","OPTIMIZATION",["VALUE = 75%","VALUE = 75%"]],
+["SNIPE HUNT",0,"Weapon","RECAL",["REPLACE 7.5 CHD"]],
+["BIRDER",0,"Weapon","RECAL",["REPLACE 7.2 CHC"]],
+["JACKPOT",10,"Brand","RECAL",["REPLACE 13.5 CHD","REPLACE 6.8% CHC"]],
+["BLAST SHIELD",10,"Brand","ADD",["ADD 2.6 EXP RES"]],
+["TRIBULATION",10,"Brand","ADD",["ADD 2.6 STATUS"]],
+["BLACKJACK",10,"Gear Set","ADD",["ADD 7.5 CHD"]],
+["VIGOR",10,"Gear Set","ADD",["ADD HEALTH 4K"]],
+["BLUE COLLAR",10,"Gear Set","RECAL+OPTI",["REPLACE 3% PFE","INCREASE VALUE 85%"]],
+["MARGINS",10,"Gear Set","RECAL+OPTI",["REPLACE SKILL EF 3.8","INCREASE VALUE 85%"]],
+["RELIANT",10,"Weapon","RECAL+OPTI",["REPLACE CHD TO 11.3","INCREASE VALUE 85%"]],
+["TILT",10,"Weapon","RECAL+OPTI",["REPLACE CHC TO 10.8%","INCREASE VALUE 85%"]],
+["RIFLEMAN",10,"Weapon","ADD",["ADD CHD 6.8%"]],
+["BUZZSAW",10,"Weapon","ADD + REPLACE",["ADD 10.5% SWAP SPEED","REPLACE STATUS TO 27.0"]],
+["KNIGHTSFALL",10,"Weapon","ADD + OPTIMIZE",["ADD 3.8% DTA","INCREASE VALUE 85%"]],
+["EXPOSURE",10,"Weapon","ADD",["ADD 6.8% DTOC"]],
+["CORNUCOPIA",30,"Weapon","ADD + REPLACE",["ADD 5% ROF","REPLACE MAG SIZE 11%"]],
+["BRAINCASE",30,"Weapon","ADD",["ADD HSD 9%","ADD HSD 9%"]],
+["ELEGANCE",30,"Weapon","ADD",["ADD WH 8%","ADD MAG SIZE 11%"]],
+["AFFILICTION",30,"Weapon","ADD",["ADD 9% STATUS","ADD 9% SE"]],
+["CASTIGATION",30,"Weapon","ADD+REPLACE+OPTIMIZE",["ADD 5% DTA","REPLACE DTOC 15%","VALUE = 100"]],
+["WORKING CLASS",30,"Brand","RECAL",["REPLACE 4% PFE","REPLACE 15 HAZPRO"]],
+["SUPERCHARGE",30,"Gear Set","ADD",["ADD 3.5 SKILL DAMAGE"]],
+["NIMBLE",30,"Gear Set","RECAL",["REPLACE WH 12%","REPLACE HSD 15%"]],
+["BACKUP",30,"Gear Set","ADD + REPLACE",["ADD 7% SKILL REP","REPLACE 5% SKILL EFFICI","VALUE = 100"]],
+["APOGEE",30,"Any","OPTIMIZATION",["VALUE = 85%","VALUE = 85%","VALUE = 85%"]],
+["BOUNTIFUL ASSAULT",null,"Weapon · Assault","ADD + REPLACE",["ADD 10.5% AR DAMAGE","REPLACE MAG SIZE 14%"]],
+["SWIFT SUPRESSION",null,"Weapon · LMG","ADD + REPLACE",["ADD 10.5% LMG DAMAGE","REPLACE MAG SIZE 13.5%"]],
+["VIOLENT RUSH",null,"Weapon · SMG","ADD + REPLACE",["ADD 10.5% SMG DAMAGE","REPLACE CHD 11.3%"]],
+["BOUNTIFUL BREACH",null,"Weapon · Shotgun","ADD + REPLACE",["ADD 10.5% SHOTGUN DAMAGE","REPLACE MAG SIZE 14%"]],
+["PRICKLY STING",null,"Weapon · Rifle","ADD + REPLACE",["ADD 10.5% RIFLE DAMAGE","REPLACE HSD 11.3%"]],
+["STEADY PRECISION",null,"Weapon · MMR","ADD + REPLACE",["ADD 10.5% MMR DAMAGE","REPLACE STAB 13.5%"]],
+["VAMPIRE DRAW",null,"Weapon · Pistol","ADD + REPLACE",["ADD 10.5% PISTOL DAMAGE","REPLACE ARMOR ON KILL 21K"]],
+["DEFIANCE",null,"Weapon","ADD+REPLACE+OPTIMIZE",["ADD 8% PFE","REPLACE 36% HAZPRO","VALUE = 100%"]],
+["BRAVE DRAW",null,"Weapon · Pistol","ADD",["ADD 8% PFE","ADD 9% HSD"]],
+["SWIFT ASSAULT",null,"Weapon · Assault","ADD",["ADD 14% SWAP","ADD 9% HASTE"]],
+["HEALTHY SUPRESSION",null,"Weapon · LMG","ADD",["ADD ARMOR REGEN 4K","ADD 9% HAZPRO"]],
+["HAZMAT RUSH",null,"Weapon · SMG","ADD",["ADD 5% ROF","ADD 9% HAZPRO"]],
+["REACHING BREACH",null,"Weapon · Shotgun","ADD",["ADD 11% RELOAD","ADD 28% RANGE"]],
+["PRECISE STING",null,"Weapon · Rifle","ADD",["ADD 11% ACC","ADD 11% STAB"]],
+["FURIOUS PRECISION",null,"Weapon · MMR","ADD",["ADD 11% ACC","ADD 5% ROF"]],
+["LAST BASTION",null,"Gear Set · Chest","ADD + REPLACE",["ADD ARMOR 38K","REPLACE INC REP 9.4%"]],
+["DEEP POCKETS",null,"Gear Set · Backpack","ADD + REPLACE",["ADD ARMOR 38K","REPLACE MAG SIZE 6%"]],
+["BLIGHT WARD",null,"Gear Set · Mask","ADD + REPLACE",["ADD ARMOR 38K","REPLACE HAZPRO 11.30%"]],
+["STEADY GRIP",null,"Gear Set · Gloves","ADD + REPLACE",["ADD ARMOR 38K","REPLACE WH 9%"]],
+["READY RESPONSE",null,"Gear Set · Holster","ADD + REPLACE",["ADD ARMOR 38K","REPLACE SWAP 6.8%"]],
+["TUNER",null,"Gear Set · Kneepads","ADD + REPLACE",["ADD ARMOR 38K","REPLACE AUG EF 8%"]],
+["SAFEGUARD",null,"Brand","ADD + OPTIMIZE",["ADD 3.5 HAZPRO","VALUE = 100%"]],
+["HARVERSTER",null,"Brand","ADD+REPLACE+OPTIMIZE",["ADD AOK 5K","REPLACE INC REP 12.50%","VALUE = 100%"]],
+["OPTIMIZER",null,"Brand","ADD",["ADD AUG EF 3.5%","ADD 3.5% CHD"]],
+["MECHANISM",null,"Any","OPTIMIZATION",["VALUE = 100%","VALUE = 100%"]]
+];
+const $=id=>document.getElementById(id);
+const st={q:"",x:"all",c:"all",s:"all",sel:new Set()};
+try{const s=JSON.parse(localStorage.getItem("rbm")||"[]");s.forEach(n=>st.sel.add(n))}catch(e){}
+const save=()=>{try{localStorage.setItem("rbm",JSON.stringify([...st.sel]))}catch(e){}};
+const XS=[["all","All"],["0","Level 0"],["10","Level 10"],["30","Level 30"],["none","No level"]];
+const CS=["all","Brand","Gear Set","Weapon","Any"];
+function chips(el,arr,key){el.innerHTML="";arr.forEach(a=>{const [v,l]=Array.isArray(a)?a:[a,a==="all"?"All":a];
+const b=document.createElement("button");b.className="chip"+(st[key]===v?" on":"");b.textContent=l;
+b.onclick=()=>{st[key]=v;if(key==="c")st.s="all";render()};el.appendChild(b)})}
+const tag=s=>s.startsWith("ADD")?"ADD":s.startsWith("REP")?"REP":"OPT";
+const tagLbl={ADD:"ADD",REP:"REPL",OPT:"OPT"};
+const slotHtml=s=>`<div class="slot"><span class="tag ${tag(s)}">${tagLbl[tag(s)]}</span>${s.replace(/^(ADD|REPLACE|INCREASE)\s*/,"")}</div>`;
+const slotHtml2=s=>s.startsWith("VALUE")||s.startsWith("INCREASE")?`<div class="slot"><span class="tag OPT">OPT</span>${s}</div>`:slotHtml(s);
+function render(){
+chips($("fx"),XS,"x");chips($("fc"),CS,"c");
+const subs=st.c==="Weapon"?["Assault","LMG","SMG","Shotgun","Rifle","MMR","Pistol"]:st.c==="Gear Set"?["Chest","Backpack","Mask","Gloves","Holster","Kneepads"]:null;
+$("rowS").style.display=subs?"":"none";if(subs)chips($("fs"),["all",...subs],"s");
+const q=st.q.toLowerCase();
+const rows=D.filter(r=>{
+if(st.x==="none"&&r[1]!==null)return false;
+if(st.x!=="all"&&st.x!=="none"&&String(r[1])!==st.x)return false;
+if(st.c!=="all"&&r[2]!=="Any"&&!r[2].startsWith(st.c))return false;
+if(st.s!=="all"&&r[2]!=="Any"&&r[2]!==st.c&&r[2]!==st.c+" · "+st.s)return false;
+if(q&&!(r[0]+" "+r[2]+" "+r[4].join(" ")).toLowerCase().includes(q))return false;
+return true});
+const cardH=r=>`<button class="card${st.sel.has(r[0])?" sel":""}" data-n="${r[0]}">
+<div class="top"><span class="nm">${r[0]}</span><span class="xp">${r[1]===null?"—":"EXP "+r[1]}</span></div>
+<div class="meta">${r[2]} · ${r[3]}</div>${r[4].map(slotHtml2).join("")}</button>`;
+const isG=r=>r[2]===st.c||r[2]==="Any";
+const gen=st.s==="all"?[]:rows.filter(isG),spec=st.s==="all"?rows:rows.filter(r=>!isG(r));
+$("grid").innerHTML=(spec.map(cardH).join("")+(gen.length?`<div class="sec">Works on any ${st.c}</div>`+gen.map(cardH).join(""):""))||'<div class="empty">Nothing matches.</div>';
+document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const n=c.dataset.n;st.sel.has(n)?st.sel.delete(n):st.sel.add(n);save();render()});
+const picks=D.filter(r=>st.sel.has(r[0]));
+$("cnt").textContent=picks.length?"("+picks.length+")":"";
+$("list").innerHTML=picks.length?picks.map(r=>`<div class="item"><button data-r="${r[0]}" title="Remove">×</button><b>${r[0]}</b> <span class="xp">${r[1]===null?"":"EXP "+r[1]}</span><div class="meta" style="margin:0">${r[2]}</div>${r[4].join(" → ")}</div>`).join(""):'<div class="empty">Empty. Tap cards to add them.</div>';
+document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{st.sel.delete(b.dataset.r);save();render()});
+}
+$("q").oninput=e=>{st.q=e.target.value;render()};
+$("clr").onclick=()=>{st.sel.clear();save();render()};
+$("copy").onclick=()=>{const t=D.filter(r=>st.sel.has(r[0])).map(r=>r[0]+": "+r[4].join(" / ")).join("\n");
+try{navigator.clipboard.writeText(t);$("copy").textContent="Copied ✓";setTimeout(()=>$("copy").textContent="Copy list",1200)}catch(e){}};
+render();
+</script>
+</body>
+</html>
