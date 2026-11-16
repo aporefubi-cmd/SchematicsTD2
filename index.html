@@ -38,6 +38,23 @@ aside h2{margin:0 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:.
 .item button{float:right;border:0;background:none;color:var(--mute);cursor:pointer;font-size:16px}
 .empty{color:var(--mute);font-size:13px;padding:8px 0}
 .act{display:flex;gap:8px;margin-top:10px}.act button{flex:1}
+
+nav{max-width:1200px;margin:auto;padding:4px 16px 0;display:flex;gap:8px}
+nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.sc-wrap{max-width:1200px;margin:auto;padding:12px 16px 40px}
+.sc-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.prog{font-size:13px;color:var(--mute)}.prog b{color:var(--acc)}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
+.sc{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:12px}
+.sc.hvt{border-left-color:var(--rep)}.sc.done{opacity:.55}
+.sc h3{margin:0 0 6px;font-size:14px;text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.sc h3 small{font-size:11px;color:var(--mute);font-weight:400}
+.sc.hvt h3 .k{color:var(--rep)}
+.ob{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px dashed var(--line);font-size:13px;cursor:pointer}
+.ob input{margin-top:2px;accent-color:var(--acc);flex:none}
+.ob.ck span{text-decoration:line-through;color:var(--mute)}
+.fin{margin-top:14px;background:var(--accsoft);border:1px solid var(--acc);border-radius:10px;padding:12px 14px}
+.fin .lbl{color:var(--acc)}.fin div.v{font-weight:700;font-size:16px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -45,7 +62,8 @@ aside h2{margin:0 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:.
 <h1>Schematic <span>Tinkerer</span></h1>
 <div class="sub">Filter by expertise level and category, tap a card to add it to your build.</div>
 </header>
-<div class="wrap">
+<nav><button class="chip on" id="tabS">Schematics</button><button class="chip" id="tabT">Scouts</button></nav>
+<div class="wrap" id="pgS">
 <main>
 <div class="bar">
 <input id="q" type="search" placeholder="Search name or stat (e.g. CHD, HAZPRO)…">
@@ -60,6 +78,11 @@ aside h2{margin:0 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:.
 <div id="list"></div>
 <div class="act"><button class="chip" id="copy">Copy list</button><button class="chip" id="clr">Clear</button></div>
 </aside>
+</div>
+<div class="sc-wrap" id="pgT" style="display:none">
+<div class="sc-top"><div class="prog" id="scProg"></div><div class="act" style="margin:0"><button class="chip" id="scReset">Reset progress</button></div></div>
+<div class="sc-grid" id="scGrid"></div>
+<div class="fin"><span class="lbl">Final mission: possible location</span><div class="v">Capitol Building (Capitol Hill)</div></div>
 </div>
 <script>
 const D=[
@@ -162,7 +185,45 @@ $("q").oninput=e=>{st.q=e.target.value;render()};
 $("clr").onclick=()=>{st.sel.clear();save();render()};
 $("copy").onclick=()=>{const t=D.filter(r=>st.sel.has(r[0])).map(r=>r[0]+": "+r[4].join(" / ")).join("\n");
 try{navigator.clipboard.writeText(t);$("copy").textContent="Copied ✓";setTimeout(()=>$("copy").textContent="Copy list",1200)}catch(e){}};
-render();
+const SC=[
+["Scout 1",0,["Eliminate Hyenas in Downtown West (x10)","Eliminate Outcasts in Constitution Hall (x10)","Eliminate True Sons in Southwest (x10)"]],
+["Scout 2",0,["Secure any Control Point in West Potomac Park","Complete Resource Convoys (x2)","Complete Outcast Propaganda Broadcast activities (x2)"]],
+["Scout 3",0,["Eliminate Hyenas (x20)","Complete DCD Headquarters on any difficulty","Eliminate named or elite True Sons (x5)"]],
+["High-Value Target 1: Gundwin",1,["Eliminate elite Black Tusk (x5)","Destroy Warhound Convoys in West Potomac Park (x2)","Bounty: Gundwin - Eliminate Gundwin in West Potomac Park"]],
+["Scout 5",0,["Sell Gear to the vendor at the Campus (x10)","Perform Rescue Operations (x2)","Donate supplies to Control Points (x100)"]],
+["Scout 6",0,["Secure Control Points from the Hyenas (x2)","Eliminate named or elite Hyenas (x5)","Complete Jefferson Trade Center on any difficulty"]],
+["Scout 7",0,["Prevent Public Executions (x2)","Perform Rescue Operations (x2)","Capture the Sinkhole Control Point"]],
+["High-Value Target 2: Odine",1,["Complete Living World activities (x5)","Eliminate Black Tusk (x20)","Bounty: Odine - Eliminate Odine in Southwest"]],
+["Scout 9",0,["Complete Propaganda Broadcast activities (x3)","Complete Territory Control activities (x3)","Eliminate hostiles in Federal Triangle (x30)"]],
+["Scout 10",0,["Complete True Sons Living World activities (x3)","Eliminate True Sons Assault soldiers (x10)","Complete Space Administration HQ on any difficulty"]],
+["Scout 11",0,["Complete Dark Zone extractions in any Dark Zone","Eliminate hostiles in any Dark Zone (x30)","Clear landmarks in any Dark Zone (x3)"]],
+["Scout 12",0,["Eliminate Black Tusk Tanks (x3)","Complete Black Tusk invaded missions (x2)","Complete Tidal Basin on any difficulty"]],
+["High-Value Target 3: Rother",1,["Eliminate Black Tusk (x15)","Complete a Black Tusk Retaliation","Bounty: Rother - Eliminate Rother in the East Mall"]]
+];
+const dn=new Set();
+try{JSON.parse(localStorage.getItem("rbmSc")||"[]").forEach(k=>dn.add(k))}catch(e){}
+const saveSc=()=>{try{localStorage.setItem("rbmSc",JSON.stringify([...dn]))}catch(e){}};
+function renderSc(){
+let tot=0,ok=0;
+$("scGrid").innerHTML=SC.map((m,i)=>{
+const all=m[2].every((_,j)=>dn.has(i+"-"+j));
+return `<div class="sc${m[1]?" hvt":""}${all?" done":""}"><h3><span class="k">${m[0]}</span><small>${m[2].filter((_,j)=>dn.has(i+"-"+j)).length}/${m[2].length}</small></h3>`+
+m[2].map((o,j)=>{const k=i+"-"+j;tot++;if(dn.has(k))ok++;
+return `<label class="ob${dn.has(k)?" ck":""}"><input type="checkbox" data-k="${k}"${dn.has(k)?" checked":""}><span>${o}</span></label>`}).join("")+`</div>`}).join("");
+$("scProg").innerHTML="Objectives done: <b>"+ok+" / "+tot+"</b>";
+document.querySelectorAll("#scGrid input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;c.checked?dn.add(k):dn.delete(k);saveSc();renderSc()});
+}
+$("scReset").onclick=()=>{dn.clear();saveSc();renderSc()};
+function show(p){
+const t=p==="scouts";
+$("pgS").style.display=t?"none":"";$("pgT").style.display=t?"":"none";
+$("tabS").classList.toggle("on",!t);$("tabT").classList.toggle("on",t);
+if(t)renderSc();
+}
+$("tabS").onclick=()=>{location.hash="";show("")};
+$("tabT").onclick=()=>{location.hash="scouts";show("scouts")};
+window.addEventListener("hashchange",()=>show(location.hash==="#scouts"?"scouts":""));
+render();show(location.hash==="#scouts"?"scouts":"");
 </script>
 </body>
 </html>
