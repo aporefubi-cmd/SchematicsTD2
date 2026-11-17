@@ -60,7 +60,7 @@ nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 <body>
 <header>
 <h1>Schematic <span>Tinkerer</span></h1>
-<div class="sub">Filter by expertise level and category, tap a card to add it to your build.</div>
+<div class="sub">Filter by Cache Pool and category, tap a card to add it to your build.</div>
 </header>
 <nav><button class="chip on" id="tabS">Schematics</button><button class="chip" id="tabT">Scouts</button></nav>
 <div class="wrap" id="pgS">
@@ -68,7 +68,7 @@ nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 <div class="bar">
 <input id="q" type="search" placeholder="Search name or stat (e.g. CHD, HAZPRO)…">
 </div>
-<div class="bar"><span class="lbl">Expertise</span><div class="grp" id="fx"></div></div>
+<div class="bar"><span class="lbl">Cache Pool</span><div class="grp" id="fx"></div></div>
 <div class="bar"><span class="lbl">Category</span><div class="grp" id="fc"></div></div>
 <div class="bar" id="rowS" style="display:none"><span class="lbl">Type</span><div class="grp" id="fs"></div></div>
 <div class="grid" id="grid"></div>
@@ -170,7 +170,7 @@ if(st.s!=="all"&&r[2]!=="Any"&&r[2]!==st.c&&r[2]!==st.c+" · "+st.s)return false
 if(q&&!(r[0]+" "+r[2]+" "+r[4].join(" ")).toLowerCase().includes(q))return false;
 return true});
 const cardH=r=>`<button class="card${st.sel.has(r[0])?" sel":""}" data-n="${r[0]}">
-<div class="top"><span class="nm">${r[0]}</span><span class="xp">${r[1]===null?"—":"EXP "+r[1]}</span></div>
+<div class="top"><span class="nm">${r[0]}</span><span class="xp">${r[1]===null?"—":"Cache Pool "+r[1]}</span></div>
 <div class="meta">${r[2]} · ${r[3]}</div>${r[4].map(slotHtml2).join("")}</button>`;
 const isG=r=>r[2]===st.c||r[2]==="Any";
 const gen=st.s==="all"?[]:rows.filter(isG),spec=st.s==="all"?rows:rows.filter(r=>!isG(r));
@@ -178,7 +178,7 @@ $("grid").innerHTML=(spec.map(cardH).join("")+(gen.length?`<div class="sec">Work
 document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const n=c.dataset.n;st.sel.has(n)?st.sel.delete(n):st.sel.add(n);save();render()});
 const picks=D.filter(r=>st.sel.has(r[0]));
 $("cnt").textContent=picks.length?"("+picks.length+")":"";
-$("list").innerHTML=picks.length?picks.map(r=>`<div class="item"><button data-r="${r[0]}" title="Remove">×</button><b>${r[0]}</b> <span class="xp">${r[1]===null?"":"EXP "+r[1]}</span><div class="meta" style="margin:0">${r[2]}</div>${r[4].join(" → ")}</div>`).join(""):'<div class="empty">Empty. Tap cards to add them.</div>';
+$("list").innerHTML=picks.length?picks.map(r=>`<div class="item"><button data-r="${r[0]}" title="Remove">×</button><b>${r[0]}</b> <span class="xp">${r[1]===null?"":"Cache Pool "+r[1]}</span><div class="meta" style="margin:0">${r[2]}</div>${r[4].join(" → ")}</div>`).join(""):'<div class="empty">Empty. Tap cards to add them.</div>';
 document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{st.sel.delete(b.dataset.r);save();render()});
 }
 $("q").oninput=e=>{st.q=e.target.value;render()};
