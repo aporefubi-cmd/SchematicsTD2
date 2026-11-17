@@ -148,7 +148,8 @@ const $=id=>document.getElementById(id);
 const st={q:"",x:"all",c:"all",s:"all",sel:new Set()};
 try{const s=JSON.parse(localStorage.getItem("rbm")||"[]");s.forEach(n=>st.sel.add(n))}catch(e){}
 const save=()=>{try{localStorage.setItem("rbm",JSON.stringify([...st.sel]))}catch(e){}};
-const XS=[["all","All"],["0","Level 0"],["10","Level 10"],["30","Level 30"],["none","No level"]];
+const pl=v=>v===null?"—":String(v).replace(/_/g," ").replace(/([a-z])([A-Z])/g,"$1 $2");
+const XS=[["all","All"],...["StarterWeapons","StarterGear","AdvancedWeapons","AdvancedGear","Experimental_A","Experimental_B"].map(v=>[v,pl(v)])];
 const CS=["all","Brand","Gear Set","Weapon","Any"];
 function chips(el,arr,key){el.innerHTML="";arr.forEach(a=>{const [v,l]=Array.isArray(a)?a:[a,a==="all"?"All":a];
 const b=document.createElement("button");b.className="chip"+(st[key]===v?" on":"");b.textContent=l;
@@ -170,7 +171,7 @@ if(st.s!=="all"&&r[2]!=="Any"&&r[2]!==st.c&&r[2]!==st.c+" · "+st.s)return false
 if(q&&!(r[0]+" "+r[2]+" "+r[4].join(" ")).toLowerCase().includes(q))return false;
 return true});
 const cardH=r=>`<button class="card${st.sel.has(r[0])?" sel":""}" data-n="${r[0]}">
-<div class="top"><span class="nm">${r[0]}</span><span class="xp">${r[1]===null?"—":"Cache Pool "+r[1]}</span></div>
+<div class="top"><span class="nm">${r[0]}</span><span class="xp">${pl(r[1])}</span></div>
 <div class="meta">${r[2]} · ${r[3]}</div>${r[4].map(slotHtml2).join("")}</button>`;
 const isG=r=>r[2]===st.c||r[2]==="Any";
 const gen=st.s==="all"?[]:rows.filter(isG),spec=st.s==="all"?rows:rows.filter(r=>!isG(r));
@@ -178,7 +179,7 @@ $("grid").innerHTML=(spec.map(cardH).join("")+(gen.length?`<div class="sec">Work
 document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const n=c.dataset.n;st.sel.has(n)?st.sel.delete(n):st.sel.add(n);save();render()});
 const picks=D.filter(r=>st.sel.has(r[0]));
 $("cnt").textContent=picks.length?"("+picks.length+")":"";
-$("list").innerHTML=picks.length?picks.map(r=>`<div class="item"><button data-r="${r[0]}" title="Remove">×</button><b>${r[0]}</b> <span class="xp">${r[1]===null?"":"Cache Pool "+r[1]}</span><div class="meta" style="margin:0">${r[2]}</div>${r[4].join(" → ")}</div>`).join(""):'<div class="empty">Empty. Tap cards to add them.</div>';
+$("list").innerHTML=picks.length?picks.map(r=>`<div class="item"><button data-r="${r[0]}" title="Remove">×</button><b>${r[0]}</b> <span class="xp">${r[1]===null?"":pl(r[1])}</span><div class="meta" style="margin:0">${r[2]}</div>${r[4].join(" → ")}</div>`).join(""):'<div class="empty">Empty. Tap cards to add them.</div>';
 document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{st.sel.delete(b.dataset.r);save();render()});
 }
 $("q").oninput=e=>{st.q=e.target.value;render()};
