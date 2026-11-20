@@ -241,10 +241,10 @@ render();show(location.hash==="#scouts"?"scouts":"");
 (function(){
 var K="whiterabbit",b=document.body;
 function ok(){b.classList.remove("locked")}
-try{if(sessionStorage.getItem("gate")==="1")ok()}catch(e){}
+try{if(localStorage.getItem("gate")==="1")ok()}catch(e){}
 document.getElementById("gf").onsubmit=function(e){
 e.preventDefault();var i=document.getElementById("gp");
-if(i.value===K){try{sessionStorage.setItem("gate","1")}catch(x){}ok()}
+if(i.value===K){try{localStorage.setItem("gate","1")}catch(x){}ok()}
 else{i.classList.add("bad");document.getElementById("gm").textContent="Wrong password";i.value="";i.focus()}
 };
 })();
