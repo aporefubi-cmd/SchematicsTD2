@@ -56,8 +56,19 @@ nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .fin{margin-top:14px;background:var(--accsoft);border:1px solid var(--acc);border-radius:10px;padding:12px 14px}
 .fin .lbl{color:var(--acc)}.fin div.v{font-weight:700;font-size:16px;margin-top:2px}
 </style>
+<style>
+body.locked>*:not(#gate){display:none!important}
+#gate{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+body.locked #gate{display:flex}
+#gate form{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+#gate input{font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);text-align:center;width:240px;max-width:100%}
+#gate input.bad{border-color:var(--rep)}
+#gate button{font:inherit;padding:9px 22px;border:0;border-radius:999px;background:var(--acc);color:#fff;font-weight:600;cursor:pointer}
+#gate small{color:var(--mute);min-height:1em}
+</style>
 </head>
-<body>
+<body class="locked">
+<div id="gate"><form id="gf"><div style="font-size:40px">🐇</div><input id="gp" type="password" placeholder="Password" autocomplete="off" autofocus><button type="submit">Enter</button><small id="gm"></small></form></div>
 <header>
 <h1>Schematic <span>Tinkerer</span></h1>
 <div class="sub">Filter by Cache Pool and category, tap a card to add it to your build.</div>
@@ -225,6 +236,18 @@ $("tabS").onclick=()=>{location.hash="";show("")};
 $("tabT").onclick=()=>{location.hash="scouts";show("scouts")};
 window.addEventListener("hashchange",()=>show(location.hash==="#scouts"?"scouts":""));
 render();show(location.hash==="#scouts"?"scouts":"");
+</script>
+<script>
+(function(){
+var K="whiterabbit",b=document.body;
+function ok(){b.classList.remove("locked")}
+try{if(sessionStorage.getItem("gate")==="1")ok()}catch(e){}
+document.getElementById("gf").onsubmit=function(e){
+e.preventDefault();var i=document.getElementById("gp");
+if(i.value===K){try{sessionStorage.setItem("gate","1")}catch(x){}ok()}
+else{i.classList.add("bad");document.getElementById("gm").textContent="Wrong password";i.value="";i.focus()}
+};
+})();
 </script>
 </body>
 </html>
