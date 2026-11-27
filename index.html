@@ -75,7 +75,7 @@ nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 <h1>Schematic <span>Tinkerer</span></h1>
 <div class="sub">Filter by Cache Pool and category, tap a card to add it to your build.</div>
 </header>
-<nav><button class="chip on" id="tabS">Schematics</button><button class="chip" id="tabT">Scouts</button></nav>
+<nav><button class="chip on" id="tabS">Schematics</button><button class="chip" id="tabTal">Talents</button><button class="chip" id="tabT">Scouts</button></nav>
 <div class="wrap" id="pgS">
 <main>
 <div class="bar">
@@ -85,6 +85,7 @@ nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 <div class="bar"><span class="lbl">Cache Pool</span><div class="grp" id="fx"></div></div>
 <div class="bar"><span class="lbl">Category</span><div class="grp" id="fc"></div></div>
 <div class="bar" id="rowS" style="display:none"><span class="lbl">Type</span><div class="grp" id="fs"></div></div>
+<div class="bar"><span class="lbl">Status</span><div class="grp" id="fd"></div></div>
 <div class="grid" id="grid"></div>
 </main>
 <aside>
@@ -92,6 +93,14 @@ nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 <div id="list"></div>
 <div class="act"><button class="chip" id="copy">Copy list</button><button class="chip" id="clr">Clear</button></div>
 </aside>
+</div>
+<div class="sc-wrap" id="pgTal" style="display:none">
+<div class="bar"><input id="tq" type="search" placeholder="Search talent…"></div>
+<div class="bar tot"><span class="lbl">Collected</span><b id="tTxt"></b><div class="pb"><i id="tBar"></i></div><button class="chip" id="tReset">Reset</button></div>
+<div class="bar"><span class="lbl">Type</span><div class="grp" id="tt"></div></div>
+<div class="bar" id="rowTs" style="display:none"><span class="lbl">Slot</span><div class="grp" id="ts"></div></div>
+<div class="bar"><span class="lbl">Status</span><div class="grp" id="td"></div></div>
+<div class="grid" id="tgrid"></div>
 </div>
 <div class="sc-wrap" id="pgT" style="display:none">
 <div class="sc-top"><div class="prog" id="scProg"></div><div class="act" style="margin:0"><button class="chip" id="scReset">Reset progress</button></div></div>
@@ -159,7 +168,7 @@ const D=[
 ["MECHANISM","Experimental_B","Any","OPTIMIZATION",["VALUE = 100%","VALUE = 100%"],[["Cache: Experimental Group B","9.09%"],["Guardian: Vulture","30%"]]]
 ];
 const $=id=>document.getElementById(id);
-const st={q:"",x:"all",c:"all",s:"all",sel:new Set()};
+const st={q:"",x:"all",c:"all",s:"all",d:"all",sel:new Set()};
 try{const s=JSON.parse(localStorage.getItem("rbm")||"[]");s.forEach(n=>st.sel.add(n))}catch(e){}
 const dn2=new Set();
 try{JSON.parse(localStorage.getItem("rbmDone")||"[]").forEach(n=>dn2.add(n))}catch(e){}
@@ -176,11 +185,13 @@ const tagLbl={ADD:"ADD",REP:"REPL",OPT:"OPT"};
 const slotHtml=s=>`<div class="slot"><span class="tag ${tag(s)}">${tagLbl[tag(s)]}</span>${s.replace(/^(ADD|REPLACE|INCREASE)\s*/,"")}</div>`;
 const slotHtml2=s=>s.startsWith("VALUE")||s.startsWith("INCREASE")?`<div class="slot"><span class="tag OPT">OPT</span>${s}</div>`:slotHtml(s);
 function render(){
-chips($("fx"),XS,"x");chips($("fc"),CS,"c");
+chips($("fx"),XS,"x");chips($("fc"),CS,"c");chips($("fd"),[["all","All"],["miss","Missing"],["got","Collected"]],"d");
 const subs=st.c==="Weapon"?["Assault","LMG","SMG","Shotgun","Rifle","MMR","Pistol"]:st.c==="Gear Set"?["Chest","Backpack","Mask","Gloves","Holster","Kneepads"]:null;
 $("rowS").style.display=subs?"":"none";if(subs)chips($("fs"),["all",...subs],"s");
 const q=st.q.toLowerCase();
 const rows=D.filter(r=>{
+if(st.d==="miss"&&dn2.has(r[0]))return false;
+if(st.d==="got"&&!dn2.has(r[0]))return false;
 if(st.x==="none"&&r[1]!==null)return false;
 if(st.x!=="all"&&st.x!=="none"&&String(r[1])!==st.x)return false;
 if(st.c!=="all"&&r[2]!=="Any"&&!r[2].startsWith(st.c))return false;
@@ -236,16 +247,48 @@ $("scProg").innerHTML="Objectives done: <b>"+ok+" / "+tot+"</b>";
 document.querySelectorAll("#scGrid input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;c.checked?dn.add(k):dn.delete(k);saveSc();renderSc()});
 }
 $("scReset").onclick=()=>{dn.clear();saveSc();renderSc()};
+const TL=[["Weapon","All",["Ranger","Future Perfect","Killer","Optimist","Breadbasket","Close & Personal","Eyeless","Fast Hands","Flatline","Head Scratcher","Ignited","In Sync","Immobilize","Perpetuation","Preservation","Pressure Point","Reformation","Sadist","Sledgehammer","Soft Spot","Spike","Stabilize","Steady Handed","Strained","Streamline","Thunder Strike","Vindictive"]],["Weapon","Assault",["Measured","Back and Forth","Boiling Point","Near Sighted","On Empty","Overflowing","Precision Strike"]],["Weapon","SMG",["Back and Forth","Boiling Point","Measured","Outsider","Unwavering"]],["Weapon","LMG",["Back and Forth","Boiling Point","Frenzy","Measured","Overwhelm","Precision Strike","Unhinged"]],["Weapon","Rifle",["Back and Forth","Behind You","Boomerang","Determined","Lucky Shot","Precision Strike","Rifleman"]],["Weapon","Marksman",["Back and Forth","Behind You","Determined","First Blood","Lucky Shot","Naked","Precision Strike"]],["Weapon","Shotgun",["Back and Forth","Brazen","Pummel","Pumped Up"]],["Weapon","Pistol",["Determined","Finisher","Lucky Shot","Salvage"]],["Gear","Chest",["Unbreakable","Skilled","Vanguard","Headhunter","Glass Cannon","Braced","Efficient","Empathic Resolve","Entrench","Explosive Delivery","Focus","Gunslinger","Kinetic Momentum","Mad Bomber","Intimidate","Obliterate","Overwatch","Protected Reload","Reassigned","Spark","Spotter","Tag Team","Tamper Proof","Trauma"]],["Gear","Backpack",["Calculated","Bloodsucker","Creeping Death","Adrenaline Rush","Opportunistic","Clutch","Combined Arms","Companion","Composure","Concussion","Energize","Galvanize","Leadership","Overclock","Protector","Safeguard","Shock and Awe","Tech Support","Unstoppable Force","Versatile","Vigilance","Wicked"]]];
+const tDone=new Set();
+try{JSON.parse(localStorage.getItem("rbmTal")||"[]").forEach(k=>tDone.add(k))}catch(e){}
+const saveTal=()=>{try{localStorage.setItem("rbmTal",JSON.stringify([...tDone]))}catch(e){}};
+const tst={q:"",t:"all",s:"all",d:"all"};
+const TALL=TL.flatMap(g=>g[2].map(n=>({k:g[0]+"|"+g[1]+"|"+n,n,kind:g[0],sub:g[1]})));
+const subLbl=(k,s)=>k==="Weapon"&&s==="All"?"Any weapon":s;
+function tChips(el,arr,key){el.innerHTML="";arr.forEach(a=>{const [v,l]=Array.isArray(a)?a:[a,a==="all"?"All":a];
+const b=document.createElement("button");b.className="chip"+(tst[key]===v?" on":"");b.textContent=l;
+b.onclick=()=>{tst[key]=v;if(key==="t")tst.s="all";renderTal()};el.appendChild(b)})}
+function renderTal(){
+tChips($("tt"),[["all","All"],["Weapon","Weapon"],["Gear","Gear (Brand)"]],"t");
+const subs=tst.t==="all"?null:[...new Set(TL.filter(g=>g[0]===tst.t).map(g=>g[1]))];
+$("rowTs").style.display=subs?"":"none";
+if(subs)tChips($("ts"),[["all","All"],...subs.map(v=>[v,subLbl(tst.t,v)])],"s");
+tChips($("td"),[["all","All"],["miss","Missing"],["got","Collected"]],"d");
+const q=tst.q.toLowerCase();
+const rows=TALL.filter(r=>(tst.d==="all"||(tst.d==="miss")!==tDone.has(r.k))&&(tst.t==="all"||r.kind===tst.t)&&(tst.s==="all"||r.sub===tst.s)&&(!q||r.n.toLowerCase().includes(q)));
+const card=r=>`<button class="card${tDone.has(r.k)?" done":""}" data-k="${r.k}"><div class="top"><span style="display:flex;align-items:center"><span class="ck${tDone.has(r.k)?" on":""}">✓</span><span class="nm">${r.n.toUpperCase()}</span></span></div><div class="meta">${r.kind==="Weapon"?"Weapon":"Brand"} · ${subLbl(r.kind,r.sub)}</div></button>`;
+let html="",last="";
+rows.forEach(r=>{const h=r.kind+"|"+r.sub;if(h!==last){last=h;const c=rows.filter(x=>x.kind===r.kind&&x.sub===r.sub);
+html+=`<div class="sec">${r.kind==="Weapon"?"Weapon":"Brand gear"} · ${subLbl(r.kind,r.sub)} <span style="float:right">${c.filter(x=>tDone.has(x.k)).length} / ${c.length}</span></div>`}
+html+=card(r)});
+$("tgrid").innerHTML=html||'<div class="empty">Nothing matches.</div>';
+document.querySelectorAll("#tgrid .card").forEach(c=>c.onclick=()=>{const k=c.dataset.k;tDone.has(k)?tDone.delete(k):tDone.add(k);saveTal();renderTal()});
+const got=TALL.filter(r=>tDone.has(r.k)).length;
+$("tTxt").textContent=got+" / "+TALL.length+" ("+Math.round(got/TALL.length*100)+"%)";$("tBar").style.width=(got/TALL.length*100)+"%";
+}
+$("tq").oninput=e=>{tst.q=e.target.value;renderTal()};
+$("tReset").onclick=()=>{if(tDone.size&&confirm("Reset all collected talents?")){tDone.clear();saveTal();renderTal()}};
 function show(p){
-const t=p==="scouts";
-$("pgS").style.display=t?"none":"";$("pgT").style.display=t?"":"none";
-$("tabS").classList.toggle("on",!t);$("tabT").classList.toggle("on",t);
-if(t)renderSc();
+const t=p==="scouts",tl=p==="talents",sc=!t&&!tl;
+$("pgS").style.display=sc?"":"none";$("pgT").style.display=t?"":"none";$("pgTal").style.display=tl?"":"none";
+$("tabS").classList.toggle("on",sc);$("tabT").classList.toggle("on",t);$("tabTal").classList.toggle("on",tl);
+if(t)renderSc();if(tl)renderTal();
 }
 $("tabS").onclick=()=>{location.hash="";show("")};
+$("tabTal").onclick=()=>{location.hash="talents";show("talents")};
 $("tabT").onclick=()=>{location.hash="scouts";show("scouts")};
-window.addEventListener("hashchange",()=>show(location.hash==="#scouts"?"scouts":""));
-render();show(location.hash==="#scouts"?"scouts":"");
+const pg=()=>location.hash==="#scouts"?"scouts":location.hash==="#talents"?"talents":"";
+window.addEventListener("hashchange",()=>show(pg()));
+render();show(pg());
 </script>
 </body>
 </html>
