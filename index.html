@@ -55,6 +55,19 @@ nav .chip{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .ob.ck span{text-decoration:line-through;color:var(--mute)}
 .fin{margin-top:14px;background:var(--accsoft);border:1px solid var(--acc);border-radius:10px;padding:12px 14px}
 .fin .lbl{color:var(--acc)}.fin div.v{font-weight:700;font-size:16px;margin-top:2px}
+.card .top{align-items:center}
+.ck{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-right:8px;border:2px solid var(--line);border-radius:6px;font-size:13px;font-weight:700;line-height:1;color:transparent;flex:none;cursor:pointer}
+.ck:hover{border-color:var(--add)}
+.ck.on{background:var(--add);border-color:var(--add);color:#fff}
+.card.done{border-left-color:var(--add)}
+.card.done .nm{opacity:.75}
+.src{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:12px;color:var(--mute)}
+.src .sl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.src div.r{display:flex;justify-content:space-between;gap:8px}.src b{color:var(--ink);font-weight:600;white-space:nowrap}
+.tot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tot .pb{flex:1;min-width:120px;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.tot .pb i{display:block;height:100%;background:var(--add);width:0;transition:width .2s}
+.tot b{font-size:14px}
 </style>
 <style>
 body.locked>*:not(#gate){display:none!important}
@@ -79,6 +92,7 @@ body.locked #gate{display:flex}
 <div class="bar">
 <input id="q" type="search" placeholder="Search name or stat (e.g. CHD, HAZPRO)…">
 </div>
+<div class="bar tot"><span class="lbl">Collected</span><b id="totTxt"></b><div class="pb"><i id="totBar"></i></div></div>
 <div class="bar"><span class="lbl">Cache Pool</span><div class="grp" id="fx"></div></div>
 <div class="bar"><span class="lbl">Category</span><div class="grp" id="fc"></div></div>
 <div class="bar" id="rowS" style="display:none"><span class="lbl">Type</span><div class="grp" id="fs"></div></div>
@@ -93,71 +107,74 @@ body.locked #gate{display:flex}
 <div class="sc-wrap" id="pgT" style="display:none">
 <div class="sc-top"><div class="prog" id="scProg"></div><div class="act" style="margin:0"><button class="chip" id="scReset">Reset progress</button></div></div>
 <div class="sc-grid" id="scGrid"></div>
-<div class="fin"><span class="lbl">Final mission: </span><div class="v">Capitol Hill</div></div>
+<div class="fin"><span class="lbl">Final mission: possible location</span><div class="v">Capitol Building (Capitol Hill)</div></div>
 </div>
 <script>
 const D=[
-["PATCH JOB","StarterGear","Brand","RECAL",["REPLACE 15% SKILL REPAIR"]],
-["SHELTER","StarterGear","Brand","RECAL",["REPLACE 7.5 HAZPRO"]],
-["PAYOUT","StarterGear","Gear Set","RECAL",["REPLACE 9 CHD"]],
-["BOXCARS","StarterGear","Gear Set","RECAL",["REPLACE 4.5 CHC"]],
-["VOUCHSAFE","StarterGear","Gear Set","RECAL",["REPLACE 7.5 HAZPRO"]],
-["SPITFIRE","StarterWeapons","Weapon","ADD",["ADD 2.5% ROF"]],
-["ROCKSTEADY","StarterWeapons","Weapon","OPTIMIZATION",["VALUE = 70%","VALUE = 70%"]],
-["SNIPE HUNT","StarterWeapons","Weapon","RECAL",["REPLACE 7.5 CHD"]],
-["BIRDER","StarterWeapons","Weapon","RECAL",["REPLACE 7.2 CHC"]],
-["JACKPOT","AdvancedGear","Brand","RECAL",["REPLACE 13.5 CHD","REPLACE 6.8% CHC"]],
-["BLAST SHIELD","AdvancedGear","Brand","ADD",["ADD 2.6 EXP RES"]],
-["TRIBULATION","AdvancedGear","Brand","ADD",["ADD 2.6 STATUS"]],
-["BLACKJACK","AdvancedGear","Gear Set","ADD",["ADD 2.6 CHD"]],
-["VIGOR","AdvancedGear","Gear Set","ADD",["ADD HEALTH 4.26K"]],
-["BLUE COLLAR","AdvancedGear","Gear Set","RECAL+OPTI",["REPLACE 3% PFE","INCREASE VALUE 80%"]],
-["MARGINS","AdvancedGear","Gear Set","RECAL+OPTI",["REPLACE SKILL EF 3.8","INCREASE VALUE 80%"]],
-["RELIANT","AdvancedWeapons","Weapon","RECAL+OPTI",["REPLACE CHD TO 11.3","INCREASE VALUE 80%"]],
-["TILT","AdvancedWeapons","Weapon","RECAL+OPTI",["REPLACE CHC TO 10.8%","INCREASE VALUE 80%"]],
-["RIFLEMAN","AdvancedWeapons","Weapon","ADD",["ADD CHD 6.8%"]],
-["BUZZSAW","AdvancedWeapons","Weapon","ADD + REPLACE",["ADD 10.5% SWAP SPEED","REPLACE STATUS TO 27.0"]],
-["KNIGHTSFALL","AdvancedWeapons","Weapon","ADD + OPTIMIZE",["ADD 3.8% DTA","INCREASE VALUE 80%"]],
-["EXPOSURE","AdvancedWeapons","Weapon","ADD",["ADD 6.8% DTOC"]],
-["CORNUCOPIA","Experimental_B","Weapon","ADD + REPLACE",["ADD 5% ROF","REPLACE MAG SIZE 11%"]],
-["BRAINCASE","Experimental_A","Weapon","ADD",["ADD HSD 9%","ADD HSD 9%"]],
-["ELEGANCE","Experimental_A","Weapon","ADD",["ADD WH 8%","ADD MAG SIZE 11%"]],
-["AFFILICTION","Experimental_B","Weapon","ADD",["ADD 9% STATUS","ADD 9% SE"]],
-["CASTIGATION","Experimental_A","Weapon","ADD+REPLACE+OPTIMIZE",["ADD 5% DTA","REPLACE DTOC 11.3%","VALUE = 100"]],
-["WORKING CLASS","Experimental_A","Brand","RECAL",["REPLACE 4% PFE","REPLACE 15 HAZPRO"]],
-["SUPERCHARGE","Experimental_B","Gear Set","ADD",["ADD 3.5 SKILL DAMAGE"]],
-["NIMBLE","Experimental_B","Gear Set","RECAL",["REPLACE WH 12%","REPLACE HSD 15%"]],
-["BACKUP","Experimental_A","Gear Set","ADD + REPLACE",["ADD 7% SKILL REP","REPLACE 5% SKILL EFFICI","VALUE = 100"]],
-["APOGEE","Experimental_B","Any","OPTIMIZATION",["VALUE = 80%","VALUE = 80%","VALUE = 80%"]],
-["BOUNTIFUL ASSAULT","AdvancedWeapons","Weapon · Assault","ADD + REPLACE",["ADD 10.5% AR DAMAGE","REPLACE MAG SIZE 14%"]],
-["SWIFT SUPRESSION","AdvancedWeapons","Weapon · LMG","ADD + REPLACE",["ADD 10.5% LMG DAMAGE","REPLACE RELOAD 13.5%"]],
-["VIOLENT RUSH","AdvancedWeapons","Weapon · SMG","ADD + REPLACE",["ADD 10.5% SMG DAMAGE","REPLACE CHD 11.3%"]],
-["BOUNTIFUL BREACH","AdvancedWeapons","Weapon · Shotgun","ADD + REPLACE",["ADD 10.5% SHOTGUN DAMAGE","REPLACE MAG SIZE 14%"]],
-["PRICKLY STING","AdvancedWeapons","Weapon · Rifle","ADD + REPLACE",["ADD 10.5% RIFLE DAMAGE","REPLACE HSD 11.3%"]],
-["STEADY PRECISION","AdvancedWeapons","Weapon · MMR","ADD + REPLACE",["ADD 10.5% MMR DAMAGE","REPLACE STAB 13.5%"]],
-["VAMPIRE DRAW","AdvancedWeapons","Weapon · Pistol","ADD + REPLACE",["ADD 10.5% PISTOL DAMAGE","REPLACE ARMOR ON KILL 21.3K"]],
-["DEFIANCE","Experimental_A","Weapon","ADD+REPLACE+OPTIMIZE",["ADD 8% PFE","REPLACE 36% HAZPRO","VALUE = 100%"]],
-["BRAVE DRAW","Experimental_B","Weapon · Pistol","ADD",["ADD 8% PFE","ADD 9% HSD"]],
-["SWIFT ASSAULT","Experimental_A","Weapon · Assault","ADD",["ADD 14% SWAP","ADD 9% HASTE"]],
-["HEALTHY SUPRESSION","Experimental_A","Weapon · LMG","ADD",["ADD ARMOR REGEN 4.16K","ADD 9% HAZPRO"]],
-["HAZMAT RUSH","Experimental_A","Weapon · SMG","ADD",["ADD 5% ROF","ADD 9% HAZPRO"]],
-["REACHING BREACH","Experimental_B","Weapon · Shotgun","ADD",["ADD 11% RELOAD","ADD 28% RANGE"]],
-["PRECISE STING","Experimental_B","Weapon · Rifle","ADD",["ADD 11% ACC","ADD 11% STAB"]],
-["FURIOUS PRECISION","Experimental_B","Weapon · MMR","ADD",["ADD 11% ACC","ADD 5% ROF"]],
-["LAST BASTION","AdvancedGear","Gear Set · Chest","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE INC REP 9.4%"]],
-["DEEP POCKETS","AdvancedGear","Gear Set · Backpack","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE MAG SIZE 6%"]],
-["BLIGHT WARD","AdvancedGear","Gear Set · Mask","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE HAZPRO 11.30%"]],
-["STEADY GRIP","AdvancedGear","Gear Set · Gloves","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE WH 9%"]],
-["READY RESPONSE","AdvancedGear","Gear Set · Holster","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE SWAP 6.8%"]],
-["TUNER","AdvancedGear","Gear Set · Kneepads","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE AUG EF 12%"]],
-["SAFEGUARD","Experimental_A","Brand","ADD + OPTIMIZE",["ADD 3.5 HAZPRO","VALUE = 100%"]],
-["HARVERSTER","Experimental_B","Brand","ADD+REPLACE+OPTIMIZE",["ADD AOK 5.68K","REPLACE INC REP 12.50%","VALUE = 100%"]],
-["OPTIMIZER","Experimental_A","Brand","ADD",["ADD AUG EF 6%","ADD 3.5% CHD"]],
-["MECHANISM","Experimental_B","Any","OPTIMIZATION",["VALUE = 100%","VALUE = 100%"]]
+["PATCH JOB","StarterGear","Brand","RECAL",["REPLACE 15% SKILL REPAIR"],[["Cache: Starter Pack Gear","20%"]]],
+["SHELTER","StarterGear","Brand","RECAL",["REPLACE 7.5 HAZPRO"],[["Cache: Starter Pack Gear","20%"]]],
+["PAYOUT","StarterGear","Gear Set","RECAL",["REPLACE 9 CHD"],[["Cache: Starter Pack Gear","20%"]]],
+["BOXCARS","StarterGear","Gear Set","RECAL",["REPLACE 4.5 CHC"],[["Cache: Starter Pack Gear","20%"]]],
+["VOUCHSAFE","StarterGear","Gear Set","RECAL",["REPLACE 7.5 HAZPRO"],[["Cache: Starter Pack Gear","20%"]]],
+["SPITFIRE","StarterWeapons","Weapon","ADD",["ADD 2.5% ROF"],[["Cache: Starter Pack Weapon","25%"]]],
+["ROCKSTEADY","StarterWeapons","Weapon","OPTIMIZATION",["VALUE = 70%","VALUE = 70%"],[["Cache: Starter Pack Weapon","25%"]]],
+["SNIPE HUNT","StarterWeapons","Weapon","RECAL",["REPLACE 7.5 CHD"],[["Cache: Starter Pack Weapon","25%"]]],
+["BIRDER","StarterWeapons","Weapon","RECAL",["REPLACE 7.2 CHC"],[["Cache: Starter Pack Weapon","25%"]]],
+["JACKPOT","AdvancedGear","Brand","RECAL",["REPLACE 13.5 CHD","REPLACE 6.8% CHC"],[["Cache: Advanced Gear","7.69%"]]],
+["BLAST SHIELD","AdvancedGear","Brand","ADD",["ADD 2.6 EXP RES"],[["Cache: Advanced Gear","7.69%"]]],
+["TRIBULATION","AdvancedGear","Brand","ADD",["ADD 2.6 STATUS"],[["Cache: Advanced Gear","7.69%"]]],
+["BLACKJACK","AdvancedGear","Gear Set","ADD",["ADD 2.6 CHD"],[["Cache: Advanced Gear","7.69%"]]],
+["VIGOR","AdvancedGear","Gear Set","ADD",["ADD HEALTH 4.26K"],[["Cache: Advanced Gear","7.69%"]]],
+["BLUE COLLAR","AdvancedGear","Gear Set","RECAL+OPTI",["REPLACE 3% PFE","INCREASE VALUE 80%"],[["Cache: Advanced Gear","7.69%"]]],
+["MARGINS","AdvancedGear","Gear Set","RECAL+OPTI",["REPLACE SKILL EF 3.8","INCREASE VALUE 80%"],[["Cache: Advanced Gear","7.69%"]]],
+["RELIANT","AdvancedWeapons","Weapon","RECAL+OPTI",["REPLACE CHD TO 11.3","INCREASE VALUE 80%"],[["Cache: Advanced Weapon","7.69%"]]],
+["TILT","AdvancedWeapons","Weapon","RECAL+OPTI",["REPLACE CHC TO 10.8%","INCREASE VALUE 80%"],[["Cache: Advanced Weapon","7.69%"]]],
+["RIFLEMAN","AdvancedWeapons","Weapon","ADD",["ADD CHD 6.8%"],[["Cache: Advanced Weapon","7.69%"]]],
+["BUZZSAW","AdvancedWeapons","Weapon","ADD + REPLACE",["ADD 10.5% SWAP SPEED","REPLACE STATUS TO 27.0"],[["Cache: Advanced Weapon","7.69%"]]],
+["KNIGHTSFALL","AdvancedWeapons","Weapon","ADD + OPTIMIZE",["ADD 3.8% DTA","INCREASE VALUE 80%"],[["Cache: Advanced Weapon","7.69%"]]],
+["EXPOSURE","AdvancedWeapons","Weapon","ADD",["ADD 6.8% DTOC"],[["Cache: Advanced Weapon","7.69%"]]],
+["CORNUCOPIA","Experimental_B","Weapon","ADD + REPLACE",["ADD 5% ROF","REPLACE MAG SIZE 11%"],[["Cache: Experimental Group B","9.09%"]]],
+["BRAINCASE","Experimental_A","Weapon","ADD",["ADD HSD 9%","ADD HSD 9%"],[["Cache: Experimental Group A","9.09%"]]],
+["ELEGANCE","Experimental_A","Weapon","ADD",["ADD WH 8%","ADD MAG SIZE 11%"],[["Cache: Experimental Group A","9.09%"]]],
+["AFFILICTION","Experimental_B","Weapon","ADD",["ADD 9% STATUS","ADD 9% SE"],[["Cache: Experimental Group B","9.09%"]]],
+["CASTIGATION","Experimental_A","Weapon","ADD+REPLACE+OPTIMIZE",["ADD 5% DTA","REPLACE DTOC 11.3%","VALUE = 100"],[["Cache: Experimental Group A","9.09%"],["Guardian: Hollow","30%"]]],
+["WORKING CLASS","Experimental_A","Brand","RECAL",["REPLACE 4% PFE","REPLACE 15 HAZPRO"],[["Cache: Experimental Group A","9.09%"]]],
+["SUPERCHARGE","Experimental_B","Gear Set","ADD",["ADD 3.5 SKILL DAMAGE"],[["Cache: Experimental Group B","9.09%"]]],
+["NIMBLE","Experimental_B","Gear Set","RECAL",["REPLACE WH 12%","REPLACE HSD 15%"],[["Cache: Experimental Group B","9.09%"]]],
+["BACKUP","Experimental_A","Gear Set","ADD + REPLACE",["ADD 7% SKILL REP","REPLACE 5% SKILL EFFICI","VALUE = 100"],[["Cache: Experimental Group A","9.09%"],["Guardian: Rick","30%"]]],
+["APOGEE","Experimental_B","Any","OPTIMIZATION",["VALUE = 80%","VALUE = 80%","VALUE = 80%"],[["Cache: Experimental Group B","9.09%"],["Guardian: Thorn","30%"]]],
+["BOUNTIFUL ASSAULT","AdvancedWeapons","Weapon · Assault","ADD + REPLACE",["ADD 10.5% AR DAMAGE","REPLACE MAG SIZE 14%"],[["Cache: Advanced Weapon","7.69%"],["Completion: Tidal Basin (Legendary)","100%"]]],
+["SWIFT SUPRESSION","AdvancedWeapons","Weapon · LMG","ADD + REPLACE",["ADD 10.5% LMG DAMAGE","REPLACE RELOAD 13.5%"],[["Cache: Advanced Weapon","7.69%"],["Completion: Manning National Zoo (Legendary)","100%"]]],
+["VIOLENT RUSH","AdvancedWeapons","Weapon · SMG","ADD + REPLACE",["ADD 10.5% SMG DAMAGE","REPLACE CHD 11.3%"],[["Cache: Advanced Weapon","7.69%"],["Completion: District Union Arena (Legendary)","100%"]]],
+["BOUNTIFUL BREACH","AdvancedWeapons","Weapon · Shotgun","ADD + REPLACE",["ADD 10.5% SHOTGUN DAMAGE","REPLACE MAG SIZE 14%"],[["Cache: Advanced Weapon","7.69%"],["Completion: Roosevelt Island (Legendary)","100%"]]],
+["PRICKLY STING","AdvancedWeapons","Weapon · Rifle","ADD + REPLACE",["ADD 10.5% RIFLE DAMAGE","REPLACE HSD 11.3%"],[["Cache: Advanced Weapon","7.69%"],["Completion: Capitol Building (Legendary)","100%"]]],
+["STEADY PRECISION","AdvancedWeapons","Weapon · MMR","ADD + REPLACE",["ADD 10.5% MMR DAMAGE","REPLACE STAB 13.5%"],[["Cache: Advanced Weapon","7.69%"],["Completion: Grand Washington Hotel (Legendary)","100%"]]],
+["VAMPIRE DRAW","AdvancedWeapons","Weapon · Pistol","ADD + REPLACE",["ADD 10.5% PISTOL DAMAGE","REPLACE ARMOR ON KILL 21.3K"],[["Cache: Advanced Weapon","7.69%"],["Completion: Air & Space Museum (Legendary)","100%"]]],
+["DEFIANCE","Experimental_A","Weapon","ADD+REPLACE+OPTIMIZE",["ADD 8% PFE","REPLACE 36% HAZPRO","VALUE = 100%"],[["Cache: Experimental Group A","9.09%"],["Guardian: Mire","30%"]]],
+["BRAVE DRAW","Experimental_B","Weapon · Pistol","ADD",["ADD 8% PFE","ADD 9% HSD"],[["Cache: Experimental Group B","9.09%"]]],
+["SWIFT ASSAULT","Experimental_A","Weapon · Assault","ADD",["ADD 14% SWAP","ADD 9% HASTE"],[["Cache: Experimental Group A","9.09%"]]],
+["HEALTHY SUPRESSION","Experimental_A","Weapon · LMG","ADD",["ADD ARMOR REGEN 4.16K","ADD 9% HAZPRO"],[["Cache: Experimental Group A","9.09%"]]],
+["HAZMAT RUSH","Experimental_A","Weapon · SMG","ADD",["ADD 5% ROF","ADD 9% HAZPRO"],[["Cache: Experimental Group A","9.09%"]]],
+["REACHING BREACH","Experimental_B","Weapon · Shotgun","ADD",["ADD 11% RELOAD","ADD 28% RANGE"],[["Cache: Experimental Group B","9.09%"]]],
+["PRECISE STING","Experimental_B","Weapon · Rifle","ADD",["ADD 11% ACC","ADD 11% STAB"],[["Cache: Experimental Group B","9.09%"]]],
+["FURIOUS PRECISION","Experimental_B","Weapon · MMR","ADD",["ADD 11% ACC","ADD 5% ROF"],[["Cache: Experimental Group B","9.09%"]]],
+["LAST BASTION","AdvancedGear","Gear Set · Chest","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE INC REP 9.4%"],[["Cache: Advanced Gear","7.69%"],["Completion: Space Administration HQ (Legendary)","100%"]]],
+["DEEP POCKETS","AdvancedGear","Gear Set · Backpack","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE MAG SIZE 6%"],[["Cache: Advanced Gear","7.69%"],["Completion: Dark Hours","100%"]]],
+["BLIGHT WARD","AdvancedGear","Gear Set · Mask","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE HAZPRO 11.30%"],[["Cache: Advanced Gear","7.69%"],["Completion: Iron Horse","100%"]]],
+["STEADY GRIP","AdvancedGear","Gear Set · Gloves","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE WH 9%"],[["Cache: Advanced Gear","7.69%"],["Completion: Paradise Lost","100%"]]],
+["READY RESPONSE","AdvancedGear","Gear Set · Holster","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE SWAP 6.8%"],[["Cache: Advanced Gear","7.69%"],["Completion: Broken Rain","100%"]]],
+["TUNER","AdvancedGear","Gear Set · Kneepads","ADD + REPLACE",["ADD ARMOR 38.25K","REPLACE AUG EF 12%"],[["Cache: Advanced Gear","7.69%"],["Completion: ViewPoint Museum (Legendary)","100%"]]],
+["SAFEGUARD","Experimental_A","Brand","ADD + OPTIMIZE",["ADD 3.5 HAZPRO","VALUE = 100%"],[["Cache: Experimental Group A","9.09%"]]],
+["HARVERSTER","Experimental_B","Brand","ADD+REPLACE+OPTIMIZE",["ADD AOK 5.68K","REPLACE INC REP 12.50%","VALUE = 100%"],[["Cache: Experimental Group B","9.09%"],["Guardian: Specter","30%"]]],
+["OPTIMIZER","Experimental_A","Brand","ADD",["ADD AUG EF 6%","ADD 3.5% CHD"],[["Cache: Experimental Group A","9.09%"]]],
+["MECHANISM","Experimental_B","Any","OPTIMIZATION",["VALUE = 100%","VALUE = 100%"],[["Cache: Experimental Group B","9.09%"],["Guardian: Vulture","30%"]]]
 ];
 const $=id=>document.getElementById(id);
 const st={q:"",x:"all",c:"all",s:"all",sel:new Set()};
 try{const s=JSON.parse(localStorage.getItem("rbm")||"[]");s.forEach(n=>st.sel.add(n))}catch(e){}
+const dn2=new Set();
+try{JSON.parse(localStorage.getItem("rbmDone")||"[]").forEach(n=>dn2.add(n))}catch(e){}
+const saveDone=()=>{try{localStorage.setItem("rbmDone",JSON.stringify([...dn2]))}catch(e){}};
 const save=()=>{try{localStorage.setItem("rbm",JSON.stringify([...st.sel]))}catch(e){}};
 const pl=v=>v===null?"—":String(v).replace(/_/g," ").replace(/([a-z])([A-Z])/g,"$1 $2");
 const XS=[["all","All"],...["StarterWeapons","StarterGear","AdvancedWeapons","AdvancedGear","Experimental_A","Experimental_B"].map(v=>[v,pl(v)])];
@@ -181,12 +198,16 @@ if(st.c!=="all"&&r[2]!=="Any"&&!r[2].startsWith(st.c))return false;
 if(st.s!=="all"&&r[2]!=="Any"&&r[2]!==st.c&&r[2]!==st.c+" · "+st.s)return false;
 if(q&&!(r[0]+" "+r[2]+" "+r[4].join(" ")).toLowerCase().includes(q))return false;
 return true});
-const cardH=r=>`<button class="card${st.sel.has(r[0])?" sel":""}" data-n="${r[0]}">
-<div class="top"><span class="nm">${r[0]}</span><span class="xp">${pl(r[1])}</span></div>
-<div class="meta">${r[2]} · ${r[3]}</div>${r[4].map(slotHtml2).join("")}</button>`;
+const srcH=r=>r[5]&&r[5].length?`<div class="src"><div class="sl">Drop source</div>${r[5].map(x=>`<div class="r"><span>${x[0]}</span><b>${x[1]}</b></div>`).join("")}</div>`:"";
+const cardH=r=>`<button class="card${st.sel.has(r[0])?" sel":""}${dn2.has(r[0])?" done":""}" data-n="${r[0]}">
+<div class="top"><span style="display:flex;align-items:center"><span class="ck${dn2.has(r[0])?" on":""}" role="checkbox" aria-checked="${dn2.has(r[0])}" title="Mark as collected" data-d="${r[0]}">✓</span><span class="nm">${r[0]}</span></span><span class="xp">${pl(r[1])}</span></div>
+<div class="meta">${r[2]} · ${r[3]}</div>${r[4].map(slotHtml2).join("")}${srcH(r)}</button>`;
 const isG=r=>r[2]===st.c||r[2]==="Any";
 const gen=st.s==="all"?[]:rows.filter(isG),spec=st.s==="all"?rows:rows.filter(r=>!isG(r));
 $("grid").innerHTML=(spec.map(cardH).join("")+(gen.length?`<div class="sec">Works on any ${st.c}</div>`+gen.map(cardH).join(""):""))||'<div class="empty">Nothing matches.</div>';
+document.querySelectorAll(".ck").forEach(k=>k.onclick=e=>{e.stopPropagation();const n=k.dataset.d;dn2.has(n)?dn2.delete(n):dn2.add(n);saveDone();render()});
+const got=D.filter(r=>dn2.has(r[0])).length;
+$("totTxt").textContent=got+" / "+D.length+" ("+Math.round(got/D.length*100)+"%)";$("totBar").style.width=(got/D.length*100)+"%";
 document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{const n=c.dataset.n;st.sel.has(n)?st.sel.delete(n):st.sel.add(n);save();render()});
 const picks=D.filter(r=>st.sel.has(r[0]));
 $("cnt").textContent=picks.length?"("+picks.length+")":"";
